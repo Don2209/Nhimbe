@@ -233,7 +233,7 @@ export function FilterBar({
                 onValueChange={(v) => apply({ sort: v as SortField })}
               >
                 {(Object.keys(SORT_LABELS) as SortField[]).map((s) => (
-                  <DropdownMenuRadioItem key={s} value={s}>
+                  <DropdownMenuRadioItem key={s} value={s} closeOnClick>
                     {SORT_LABELS[s]}
                   </DropdownMenuRadioItem>
                 ))}
@@ -246,8 +246,8 @@ export function FilterBar({
                 value={filters.dir}
                 onValueChange={(v) => apply({ dir: v as "asc" | "desc" })}
               >
-                <DropdownMenuRadioItem value="desc">Descending</DropdownMenuRadioItem>
-                <DropdownMenuRadioItem value="asc">Ascending</DropdownMenuRadioItem>
+                <DropdownMenuRadioItem value="desc" closeOnClick>Descending</DropdownMenuRadioItem>
+                <DropdownMenuRadioItem value="asc" closeOnClick>Ascending</DropdownMenuRadioItem>
               </DropdownMenuRadioGroup>
             </DropdownMenuGroup>
           </DropdownMenuContent>

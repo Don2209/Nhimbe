@@ -59,7 +59,7 @@ export function PropertyPicker({
           <DropdownMenuLabel>{label}</DropdownMenuLabel>
           <DropdownMenuRadioGroup value={value} onValueChange={(v) => v !== value && onChange(String(v))}>
             {options.map((o) => (
-              <DropdownMenuRadioItem key={o.value} value={o.value}>
+              <DropdownMenuRadioItem key={o.value} value={o.value} closeOnClick>
                 {o.render ?? o.label}
               </DropdownMenuRadioItem>
             ))}

@@ -1,8 +1,9 @@
 import "server-only";
-import { asc, count, eq } from "drizzle-orm";
+import { asc, count, eq, like } from "drizzle-orm";
 import { db } from "@/db";
 import { projects, tickets } from "@/db/schema";
 import { ActionError } from "@/lib/errors";
+import { suggestProjectKey } from "@/lib/project-key";
 import { isUniqueViolation } from "@/server/db-errors";
 
 export async function listProjects({ includeArchived = false } = {}) {
@@ -29,13 +30,28 @@ export async function listProjectsWithCounts() {
 }
 export type ProjectRow = Awaited<ReturnType<typeof listProjectsWithCounts>>[number];
 
-export async function createProject(input: { name: string; key: string }) {
-  try {
-    await db.insert(projects).values(input);
-  } catch (error) {
-    if (isUniqueViolation(error)) throw new ActionError(`The key ${input.key} is already taken.`);
-    throw error;
+/**
+ * Creates a project. Without an explicit key, one is derived from the name and
+ * made unique (PAY, PAY2, PAY3…), so creating a project never fails on the key.
+ */
+export async function createProject(input: { name: string; key?: string }) {
+  const explicit = input.key || null;
+  const base = explicit ?? suggestProjectKey(input.name);
+  const taken = new Set(
+    (await db.select({ key: projects.key }).from(projects).where(like(projects.key, `${base}%`))).map((p) => p.key),
+  );
+  if (explicit && taken.has(explicit)) throw new ActionError(`The prefix ${explicit} is already used by another project.`);
+  for (let n = 1; n < 100; n++) {
+    const key = n === 1 ? base : `${base.slice(0, 8)}${n}`;
+    if (taken.has(key)) continue;
+    try {
+      const [row] = await db.insert(projects).values({ name: input.name, key }).returning();
+      return row;
+    } catch (error) {
+      if (!isUniqueViolation(error)) throw error; // raced with another create: try the next suffix
+    }
   }
+  throw new ActionError("Couldn't pick a prefix for that name. Try a different name.");
 }
 
 export async function renameProject(id: string, name: string) {

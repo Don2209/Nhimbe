@@ -119,6 +119,7 @@ src/
 
 ### Data notes
 
+- A project needs only a name; its ticket prefix is derived from it ("Payments" → `PAY`, "Customer Portal" → `CP`) and made unique automatically. You can override it when creating the project.
 - Ticket numbers are per project (`PAY-1`, `PAY-2`, …). New numbers are allocated inside a transaction that locks the project row, and a unique index on `(project_id, number)` backs this up.
 - Every edit to a ticket field writes one `ticket_history` row (`field`, `old_value`, `new_value`). `closed_at` is set when a ticket enters *Done* or *Closed* and cleared if it is reopened. Any status can move to any other.
 - A ticket's project, and so its key, is fixed once the ticket is created. Archived projects keep their tickets but stop accepting new ones.

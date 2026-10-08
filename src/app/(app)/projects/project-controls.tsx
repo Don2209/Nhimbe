@@ -1,44 +1,31 @@
 "use client";
 
 import { Archive, ArchiveRestore, FolderPlus, Pencil, Trash2 } from "lucide-react";
-import { useTransition } from "react";
+import { useState, useTransition } from "react";
 import { toast } from "sonner";
 import {
-  createProjectAction,
   deleteProjectAction,
   renameProjectAction,
   setProjectArchivedAction,
 } from "@/actions/projects";
 import { Field, FormDialog } from "@/components/admin/form-dialog";
 import { ConfirmDialog } from "@/components/confirm-dialog";
+import { ProjectCreateForm } from "@/components/project-create-form";
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
 
 export function AddProjectButton() {
+  const [open, setOpen] = useState(false);
   return (
-    <FormDialog
-      trigger={<Button><FolderPlus aria-hidden="true" /> New project</Button>}
-      title="New project"
-      description="The key prefixes every ticket number, like PAY-12. It can't be changed later."
-      action={createProjectAction}
-      success="Project created"
-      submitLabel="Create project"
-    >
-      {(errors) => (
-        <>
-          <Field name="name" label="Name" errors={errors} required placeholder="Payments" />
-          <Field
-            name="key"
-            label="Key"
-            errors={errors}
-            required
-            maxLength={10}
-            placeholder="PAY"
-            className="h-9 font-mono uppercase"
-            hint="2–10 letters or digits, starting with a letter."
-          />
-        </>
-      )}
-    </FormDialog>
+    <Dialog open={open} onOpenChange={setOpen}>
+      <DialogTrigger render={<Button><FolderPlus aria-hidden="true" /> New project</Button>} />
+      <DialogContent className="sm:max-w-md">
+        <DialogHeader>
+          <DialogTitle className="font-heading text-lg">New project</DialogTitle>
+        </DialogHeader>
+        {open && <ProjectCreateForm onDone={() => setOpen(false)} />}
+      </DialogContent>
+    </Dialog>
   );
 }
 

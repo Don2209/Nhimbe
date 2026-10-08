@@ -140,12 +140,15 @@ export const userUpdateSchema = z.object({
 export const passwordResetSchema = z.object({ id: idSchema, password: passwordSchema });
 
 export const projectCreateSchema = z.object({
-  name: z.string().trim().min(1, "Enter a name").max(120),
-  key: z
-    .string()
-    .trim()
-    .toUpperCase()
-    .regex(/^[A-Z][A-Z0-9]{1,9}$/, "2–10 letters or digits, starting with a letter"),
+  name: z.string().trim().min(1, "Give the project a name").max(120),
+  // Optional: when blank, a prefix is derived from the name.
+  key: z.preprocess(
+    (v) => (typeof v === "string" ? v.replace(/[^A-Za-z0-9]/g, "").toUpperCase() : v),
+    z
+      .string()
+      .regex(/^([A-Z][A-Z0-9]{1,9})?$/, "Use 2–10 letters or numbers, starting with a letter")
+      .optional(),
+  ),
 });
 
 export const projectUpdateSchema = z.object({

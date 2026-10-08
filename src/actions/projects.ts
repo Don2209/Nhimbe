@@ -10,7 +10,9 @@ import { formFields, runAction } from "./run";
 // Any signed-in team member can manage projects.
 
 export async function createProjectAction(_prev: ActionResult, fd: FormData) {
-  return runAction(assertUser, projectCreateSchema, formFields(fd, ["name", "key"]), (d) => createProject(d));
+  return runAction(assertUser, projectCreateSchema, formFields(fd, ["name", "key"]), async (d) => {
+    await createProject(d);
+  });
 }
 
 export async function renameProjectAction(_prev: ActionResult, fd: FormData) {

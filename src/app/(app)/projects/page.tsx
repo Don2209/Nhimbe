@@ -1,7 +1,7 @@
 import { FolderPlus } from "lucide-react";
 import type { Metadata } from "next";
 import Link from "next/link";
-import { EmptyState } from "@/components/empty-state";
+import { ProjectCreateForm } from "@/components/project-create-form";
 import { PageHeader } from "@/components/page-header";
 import { requireUser } from "@/lib/auth-guards";
 import { cn } from "@/lib/utils";
@@ -22,9 +22,18 @@ export default async function ProjectsPage() {
         actions={<AddProjectButton />}
       />
       {projects.length === 0 ? (
-        <EmptyState icon={FolderPlus} title="No projects yet" action={<AddProjectButton />}>
-          Projects group related tickets. Create one, like &ldquo;Payments&rdquo; with the key PAY.
-        </EmptyState>
+        <section className="max-w-md rounded-xl border bg-card p-5">
+          <div className="mb-4 flex items-center gap-3">
+            <span className="flex size-9 items-center justify-center rounded-full bg-accent text-accent-foreground">
+              <FolderPlus className="size-4.5" aria-hidden="true" />
+            </span>
+            <div>
+              <h2 className="text-base font-semibold">Create your first project</h2>
+              <p className="text-sm text-muted-foreground">Projects group related tickets. A name is all you need.</p>
+            </div>
+          </div>
+          <ProjectCreateForm />
+        </section>
       ) : (
         <div className="overflow-x-auto rounded-xl border bg-card">
           <table className="w-full text-sm">
