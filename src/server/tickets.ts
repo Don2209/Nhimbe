@@ -15,7 +15,7 @@ import {
 import { alias } from "drizzle-orm/pg-core";
 import { db, type Tx } from "@/db";
 import { projects, ticketHistory, tickets, users, type Ticket } from "@/db/schema";
-import { ActionError } from "@/lib/action-result";
+import { ActionError } from "@/lib/errors";
 import { FINISHED_STATUSES, PAGE_SIZE, type Status } from "@/lib/constants";
 import { parseTicketKey } from "@/lib/tickets";
 import type { TicketCreateInput, TicketFilters, TicketPatch } from "@/lib/validation";
@@ -290,4 +290,10 @@ export async function getDashboard(userId: string) {
   ]);
   const byStatus = Object.fromEntries(counts.map((c) => [c.status, c.total])) as Partial<Record<Status, number>>;
   return { mine, unassigned, recent, byStatus };
+}
+
+/** Deletes a ticket; its comments and history go with it (ON DELETE CASCADE). */
+export async function deleteTicket(id: string) {
+  const [removed] = await db.delete(tickets).where(eq(tickets.id, id)).returning({ number: tickets.number });
+  if (!removed) throw new ActionError("That ticket no longer exists.");
 }

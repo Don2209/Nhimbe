@@ -103,6 +103,8 @@ export const comments = pgTable(
       .references(() => users.id, { onDelete: "restrict" }),
     body: text("body").notNull(),
     createdAt: createdAt(),
+    /** Set when the body is edited after posting. */
+    updatedAt: timestamp("updated_at", { withTimezone: true }),
   },
   (t) => [index("comments_ticket_idx").on(t.ticketId, t.createdAt)],
 );

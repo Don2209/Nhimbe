@@ -1,6 +1,6 @@
 import { ArrowRight, CirclePlus } from "lucide-react";
 import { PriorityBadge, StatusBadge, TypeBadge } from "@/components/badges";
-import { Markdown } from "@/components/markdown";
+import { CommentCard } from "@/components/ticket/comment-card";
 import { UserAvatar } from "@/components/user-avatar";
 import type { Priority, Status, TicketType } from "@/lib/constants";
 import { formatDateTime, formatDueDate, timeAgo } from "@/lib/format";
@@ -56,10 +56,12 @@ export function ActivityTimeline({
   items,
   names,
   created,
+  viewer,
 }: {
   items: ActivityItem[];
   names: Map<string, string>;
   created: { at: Date; by: { id: string; name: string } };
+  viewer: { id: string; role: "developer" | "admin" };
 }) {
   return (
     <ol className="relative space-y-4 before:absolute before:top-2 before:bottom-2 before:left-3 before:w-px before:bg-border">
@@ -77,16 +79,24 @@ export function ActivityTimeline({
           return (
             <li key={item.id} className="relative flex gap-3">
               <UserAvatar user={item.user} className="relative z-10 mt-1 ring-4 ring-background" />
-              <article className="min-w-0 flex-1 rounded-xl border bg-card shadow-xs">
-                <header className="flex items-center gap-2 border-b px-3 py-2 text-sm">
-                  <strong className="font-medium">{item.user.name}</strong>
-                  <span className="text-muted-foreground">commented</span>
-                  <span className="ml-auto"><When date={item.createdAt} /></span>
-                </header>
-                <div className="px-3 py-2.5">
-                  <Markdown>{item.body}</Markdown>
-                </div>
-              </article>
+              <CommentCard
+                id={item.id}
+                author={item.user.name}
+                body={item.body}
+                canEdit={item.user.id === viewer.id || viewer.role === "admin"}
+                header={
+                  <>
+                    <strong className="font-medium">{item.user.name}</strong>
+                    <span className="text-muted-foreground">commented</span>
+                    {item.editedAt && (
+                      <span className="text-xs text-muted-foreground" title={`Edited ${formatDateTime(item.editedAt)}`}>
+                        · edited
+                      </span>
+                    )}
+                    <span className="ml-auto"><When date={item.createdAt} /></span>
+                  </>
+                }
+              />
             </li>
           );
         }

@@ -1,5 +1,7 @@
 import { z } from "zod";
-import { UnauthorizedError } from "@/lib/auth-guards";
+import { ActionError, UnauthorizedError } from "@/lib/errors";
+
+export { ActionError };
 
 export type ActionResult<T = undefined> =
   | { ok: true; data?: T }
@@ -12,9 +14,6 @@ export function fromZodError(error: z.ZodError): ActionResult<never> {
     fieldErrors: z.flattenError(error).fieldErrors as Record<string, string[]>,
   };
 }
-
-/** User-facing errors thrown from services. */
-export class ActionError extends Error {}
 
 export function toActionError(error: unknown): ActionResult<never> {
   if (error instanceof UnauthorizedError) {

@@ -8,7 +8,8 @@
 
 ## Features
 
-- **Roles.** Developers create, edit, comment on and assign tickets. Admins can also manage users and projects.
+- **Roles.** Everyone can create, edit and delete projects and tickets, comment, assign work, and edit or delete their own comments. Admins can also edit or delete anyone's comments and manage user accounts.
+- **Profile.** Everyone can change their own name, email and password under *Profile & password*.
 - **Dashboard.** Shows your open tickets, unassigned tickets, recently updated tickets and counts per status.
 - **Ticket list.** Filter by status, priority, type, project and assignee, search title and description, sort, and page through results. Every view lives in the URL, so you can share it.
 - **Ticket detail.** Edit fields inline. Descriptions and comments use Markdown (sanitised). There's a history timeline, and quick status and assignee changes.
@@ -98,7 +99,9 @@ src/
   app/(app)/              signed-in area (layout checks the session)
     page.tsx              dashboard
     tickets/              list · new · [key] detail · [key]/edit
-    admin/                users · projects (layout checks the admin role)
+    projects/             projects (any signed-in user)
+    settings/             your profile and password
+    admin/                users (layout checks the admin role)
   actions/                server actions: check session → validate (Zod) → service → revalidate
   server/                 data access with Drizzle (server-only)
   db/schema.ts            tables, enums and indexes; migrations in /drizzle
@@ -119,5 +122,7 @@ src/
 - Ticket numbers are per project (`PAY-1`, `PAY-2`, …). New numbers are allocated inside a transaction that locks the project row, and a unique index on `(project_id, number)` backs this up.
 - Every edit to a ticket field writes one `ticket_history` row (`field`, `old_value`, `new_value`). `closed_at` is set when a ticket enters *Done* or *Closed* and cleared if it is reopened. Any status can move to any other.
 - A ticket's project, and so its key, is fixed once the ticket is created. Archived projects keep their tickets but stop accepting new ones.
+- Deleting a ticket removes its comments and history. Deleting a project removes all its tickets; you confirm by typing the project key.
+- Accounts with activity (reported tickets, comments or edits) can't be deleted, only deactivated, so the history stays accurate. An account with no activity can be deleted, and tickets assigned to it become unassigned.
 - Text search uses `ILIKE`, backed by `pg_trgm` GIN indexes. That's plenty for a team-sized backlog.
 - Cache Components is turned off: every page is per-user and rendered on request.

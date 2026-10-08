@@ -1,26 +1,22 @@
 "use server";
 
-import { revalidatePath } from "next/cache";
+import { z } from "zod";
 import { assertUser } from "@/lib/auth-guards";
-import { fromZodError, toActionError, type ActionResult } from "@/lib/action-result";
-import { commentSchema } from "@/lib/validation";
-import { addComment } from "@/server/comments";
+import type { ActionResult } from "@/lib/action-result";
+import { commentEditSchema, commentSchema, idSchema } from "@/lib/validation";
+import { addComment, deleteComment, updateComment } from "@/server/comments";
+import { formFields, runAction } from "./run";
 
-export async function addCommentAction(
-  _prev: ActionResult,
-  formData: FormData,
-): Promise<ActionResult> {
-  try {
-    const user = await assertUser();
-    const parsed = commentSchema.safeParse({
-      ticketId: formData.get("ticketId"),
-      body: formData.get("body") ?? "",
-    });
-    if (!parsed.success) return fromZodError(parsed.error);
-    await addComment(parsed.data.ticketId, user.id, parsed.data.body);
-  } catch (error) {
-    return toActionError(error);
-  }
-  revalidatePath("/", "layout");
-  return { ok: true };
+export async function addCommentAction(_prev: ActionResult, fd: FormData) {
+  return runAction(assertUser, commentSchema, formFields(fd, ["ticketId", "body"]), (d, actor) =>
+    addComment(d.ticketId, actor.id, d.body),
+  );
+}
+
+export async function updateCommentAction(id: string, body: string) {
+  return runAction(assertUser, commentEditSchema, { id, body }, (d, actor) => updateComment(d.id, actor, d.body));
+}
+
+export async function deleteCommentAction(id: string) {
+  return runAction(assertUser, z.object({ id: idSchema }), { id }, (d, actor) => deleteComment(d.id, actor));
 }

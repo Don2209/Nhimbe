@@ -5,6 +5,7 @@ import { cache } from "react";
 import { auth } from "@/auth";
 import { db } from "@/db";
 import { users } from "@/db/schema";
+import { UnauthorizedError } from "@/lib/errors";
 
 export type SessionUser = {
   id: string;
@@ -41,7 +42,7 @@ export async function requireAdmin() {
   return user;
 }
 
-export class UnauthorizedError extends Error {}
+export { UnauthorizedError };
 
 /** For server actions: throws instead of redirecting. */
 export async function assertUser() {

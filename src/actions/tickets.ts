@@ -11,7 +11,7 @@ import {
   ticketPatchSchema,
   type TicketPatch,
 } from "@/lib/validation";
-import { createTicket, searchTickets, updateTicket, type TicketListRow } from "@/server/tickets";
+import { createTicket, deleteTicket, searchTickets, updateTicket, type TicketListRow } from "@/server/tickets";
 
 function ticketFields(formData: FormData) {
   return {
@@ -97,4 +97,15 @@ export async function searchTicketsAction(query: string): Promise<PaletteTicket[
     status: r.status,
     priority: r.priority,
   }));
+}
+
+export async function deleteTicketAction(ticketId: string): Promise<ActionResult> {
+  try {
+    await assertUser();
+    await deleteTicket(idSchema.parse(ticketId));
+  } catch (error) {
+    return toActionError(error);
+  }
+  revalidatePath("/", "layout");
+  redirect("/tickets");
 }

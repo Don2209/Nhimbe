@@ -1,16 +1,11 @@
 import "server-only";
 import bcrypt from "bcryptjs";
-import { asc, count, desc, eq, sql } from "drizzle-orm";
+import { asc, desc, eq, sql } from "drizzle-orm";
 import { db } from "@/db";
-import { projects, tickets, users } from "@/db/schema";
-import { ActionError } from "@/lib/action-result";
+import { comments, ticketHistory, tickets, users } from "@/db/schema";
+import { ActionError } from "@/lib/errors";
 import type { Role } from "@/lib/constants";
-
-function isUniqueViolation(error: unknown) {
-  const code = (error as { code?: string; cause?: { code?: string } })?.code ??
-    (error as { cause?: { code?: string } })?.cause?.code;
-  return code === "23505";
-}
+import { isUniqueViolation } from "@/server/db-errors";
 
 export async function listUsersForAdmin() {
   return db
@@ -74,35 +69,29 @@ export async function resetPassword(id: string, password: string) {
     .where(eq(users.id, id));
 }
 
-export async function listProjectsForAdmin() {
-  return db
-    .select({
-      id: projects.id,
-      name: projects.name,
-      key: projects.key,
-      isArchived: projects.isArchived,
-      ticketCount: count(tickets.id),
-    })
-    .from(projects)
-    .leftJoin(tickets, eq(tickets.projectId, projects.id))
-    .groupBy(projects.id)
-    .orderBy(asc(projects.isArchived), asc(projects.name));
-}
-export type AdminProjectRow = Awaited<ReturnType<typeof listProjectsForAdmin>>[number];
-
-export async function createProject(input: { name: string; key: string }) {
-  try {
-    await db.insert(projects).values(input);
-  } catch (error) {
-    if (isUniqueViolation(error)) throw new ActionError(`The key ${input.key} is already taken.`);
-    throw error;
-  }
-}
-
-export async function renameProject(id: string, name: string) {
-  await db.update(projects).set({ name }).where(eq(projects.id, id));
-}
-
-export async function setProjectArchived(id: string, isArchived: boolean) {
-  await db.update(projects).set({ isArchived }).where(eq(projects.id, id));
+/**
+ * Deletes an account that has no recorded activity. People who reported
+ * tickets, commented or changed fields are part of the record, so they can
+ * only be deactivated. Tickets assigned to the deleted user become unassigned.
+ */
+export async function deleteUser(actorId: string, id: string) {
+  if (id === actorId) throw new ActionError("You can't delete your own account.");
+  await db.transaction(async (tx) => {
+    const [user] = await tx.select({ name: users.name }).from(users).where(eq(users.id, id)).for("update");
+    if (!user) throw new ActionError("That user no longer exists.");
+    const [activity] = await tx
+      .select({
+        reported: sql<number>`(select count(*) from ${tickets} where ${tickets.reporterId} = ${id})`.mapWith(Number),
+        commented: sql<number>`(select count(*) from ${comments} where ${comments.userId} = ${id})`.mapWith(Number),
+        changed: sql<number>`(select count(*) from ${ticketHistory} where ${ticketHistory.userId} = ${id})`.mapWith(Number),
+      })
+      .from(users)
+      .where(eq(users.id, id));
+    if (activity.reported + activity.commented + activity.changed > 0) {
+      throw new ActionError(
+        `${user.name} has reported tickets, commented or edited tickets, so deleting them would break that history. Deactivate the account instead.`,
+      );
+    }
+    await tx.delete(users).where(eq(users.id, id));
+  });
 }

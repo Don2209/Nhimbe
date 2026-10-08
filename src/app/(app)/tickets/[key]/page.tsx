@@ -4,6 +4,7 @@ import Link from "next/link";
 import { notFound, redirect } from "next/navigation";
 import { ActivityTimeline } from "@/components/ticket/activity-timeline";
 import { CommentForm } from "@/components/ticket/comment-form";
+import { DeleteTicketButton } from "@/components/ticket/delete-ticket-button";
 import { InlineDescription } from "@/components/ticket/inline-description";
 import { InlineTitle } from "@/components/ticket/inline-title";
 import { QuickBar, TicketProperties } from "@/components/ticket/ticket-properties";
@@ -69,9 +70,12 @@ export default async function TicketPage({ params }: PageProps<"/tickets/[key]">
         <Link href={`/tickets?project=${project.key}`} className="rounded hover:text-foreground focus-visible:ring-2 focus-visible:ring-ring focus-visible:outline-none">{project.name}</Link>
         <ChevronRight className="size-3.5" aria-hidden="true" />
         <span aria-current="page" className="font-mono text-xs font-medium text-terracotta">{canonical}</span>
-        <Button variant="ghost" size="sm" className="ml-auto" nativeButton={false} render={<Link href={`/tickets/${canonical}/edit`} />}>
-          <Pencil aria-hidden="true" /> Edit
-        </Button>
+        <span className="ml-auto flex items-center gap-1">
+          <Button variant="ghost" size="sm" nativeButton={false} render={<Link href={`/tickets/${canonical}/edit`} />}>
+            <Pencil aria-hidden="true" /> Edit
+          </Button>
+          <DeleteTicketButton ticketId={ticket.id} ticketKey={canonical} />
+        </span>
       </nav>
 
       <div className="grid gap-8 lg:grid-cols-[1fr_18rem]">
@@ -89,7 +93,12 @@ export default async function TicketPage({ params }: PageProps<"/tickets/[key]">
 
           <section aria-labelledby="activity-heading" className="space-y-4 border-t pt-6">
             <h2 id="activity-heading" className="text-lg font-semibold">Activity</h2>
-            <ActivityTimeline items={activity} names={names} created={{ at: ticket.createdAt, by: reporter }} />
+            <ActivityTimeline
+              items={activity}
+              names={names}
+              created={{ at: ticket.createdAt, by: reporter }}
+              viewer={{ id: user.id, role: user.role }}
+            />
             <div className="pl-9">
               <CommentForm ticketId={ticket.id} />
             </div>

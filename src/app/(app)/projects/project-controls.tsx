@@ -1,10 +1,16 @@
 "use client";
 
-import { Archive, ArchiveRestore, FolderPlus, Pencil } from "lucide-react";
+import { Archive, ArchiveRestore, FolderPlus, Pencil, Trash2 } from "lucide-react";
 import { useTransition } from "react";
 import { toast } from "sonner";
-import { createProjectAction, renameProjectAction, setProjectArchivedAction } from "@/actions/admin";
+import {
+  createProjectAction,
+  deleteProjectAction,
+  renameProjectAction,
+  setProjectArchivedAction,
+} from "@/actions/projects";
 import { Field, FormDialog } from "@/components/admin/form-dialog";
+import { ConfirmDialog } from "@/components/confirm-dialog";
 import { Button } from "@/components/ui/button";
 
 export function AddProjectButton() {
@@ -36,7 +42,11 @@ export function AddProjectButton() {
   );
 }
 
-export function ProjectRowActions({ project }: { project: { id: string; name: string; isArchived: boolean } }) {
+export function ProjectRowActions({
+  project,
+}: {
+  project: { id: string; name: string; key: string; isArchived: boolean; ticketCount: number };
+}) {
   const [pending, startTransition] = useTransition();
   return (
     <div className="flex items-center justify-end gap-1">
@@ -56,8 +66,10 @@ export function ProjectRowActions({ project }: { project: { id: string; name: st
       </FormDialog>
       <Button
         variant="ghost"
-        size="sm"
+        size="icon-sm"
         disabled={pending}
+        aria-label={project.isArchived ? `Restore ${project.name}` : `Archive ${project.name}`}
+        title={project.isArchived ? "Restore" : "Archive"}
         onClick={() =>
           startTransition(async () => {
             const result = await setProjectArchivedAction(project.id, !project.isArchived);
@@ -67,8 +79,24 @@ export function ProjectRowActions({ project }: { project: { id: string; name: st
         }
       >
         {project.isArchived ? <ArchiveRestore aria-hidden="true" /> : <Archive aria-hidden="true" />}
-        {project.isArchived ? "Restore" : "Archive"}
       </Button>
+      <ConfirmDialog
+        trigger={
+          <Button variant="ghost" size="icon-sm" aria-label={`Delete ${project.name}`} title="Delete" className="text-destructive hover:text-destructive">
+            <Trash2 aria-hidden="true" />
+          </Button>
+        }
+        title={`Delete ${project.name}?`}
+        description={
+          project.ticketCount > 0
+            ? `This permanently deletes the project and its ${project.ticketCount} ${project.ticketCount === 1 ? "ticket" : "tickets"}, with all their comments and history. This can't be undone. To keep the record, archive it instead.`
+            : "This permanently deletes the project. This can't be undone."
+        }
+        confirmText={project.ticketCount > 0 ? project.key : undefined}
+        confirmLabel="Delete project"
+        success="Project deleted"
+        onConfirm={() => deleteProjectAction(project.id)}
+      />
     </div>
   );
 }

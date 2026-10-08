@@ -1,15 +1,17 @@
 "use client";
 
-import { KeyRound, Pencil, Power, UserPlus } from "lucide-react";
+import { KeyRound, Pencil, Power, Trash2, UserPlus } from "lucide-react";
 import { useState, useTransition } from "react";
 import { toast } from "sonner";
 import {
   createUserAction,
+  deleteUserAction,
   resetPasswordAction,
   setUserActiveAction,
   updateUserAction,
 } from "@/actions/admin";
 import { Field, FormDialog } from "@/components/admin/form-dialog";
+import { ConfirmDialog } from "@/components/confirm-dialog";
 import { NativeSelect } from "@/components/native-select";
 import { Button } from "@/components/ui/button";
 import { Label } from "@/components/ui/label";
@@ -135,6 +137,20 @@ export function UserRowActions({
             <Power aria-hidden="true" />
           </Button>
         ))}
+      {!isSelf && (
+        <ConfirmDialog
+          trigger={
+            <Button variant="ghost" size="icon-sm" aria-label={`Delete ${user.name}`} title="Delete" className="text-destructive hover:text-destructive">
+              <Trash2 aria-hidden="true" />
+            </Button>
+          }
+          title={`Delete ${user.name}?`}
+          description="This removes the account permanently. It only works for people with no tickets, comments or edits; anyone with history can be deactivated instead. Tickets assigned to them become unassigned."
+          confirmLabel="Delete account"
+          success={`${user.name} deleted`}
+          onConfirm={() => deleteUserAction(user.id)}
+        />
+      )}
     </div>
   );
 }

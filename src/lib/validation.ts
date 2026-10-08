@@ -152,3 +152,26 @@ export const projectUpdateSchema = z.object({
   id: idSchema,
   name: z.string().trim().min(1, "Enter a name").max(120),
 });
+
+// ---- Profile & editing ----
+
+export const profileSchema = z.object({
+  name: z.string().trim().min(1, "Enter your name").max(120),
+  email: emailSchema,
+});
+
+export const passwordChangeSchema = z
+  .object({
+    currentPassword: z.string().min(1, "Enter your current password").max(200),
+    newPassword: passwordSchema,
+    confirmPassword: z.string(),
+  })
+  .refine((d) => d.newPassword === d.confirmPassword, {
+    path: ["confirmPassword"],
+    message: "The passwords don't match",
+  });
+
+export const commentEditSchema = z.object({
+  id: idSchema,
+  body: markdownSchema.trim().min(1, "Write something first"),
+});

@@ -1,8 +1,9 @@
 import "server-only";
-import { asc, eq } from "drizzle-orm";
+import { and, asc, eq } from "drizzle-orm";
 import { db } from "@/db";
 import { comments, ticketHistory, tickets, users } from "@/db/schema";
-import { ActionError } from "@/lib/action-result";
+import { ActionError } from "@/lib/errors";
+import type { SessionUser } from "@/lib/auth-guards";
 
 export async function addComment(ticketId: string, userId: string, body: string) {
   await db.transaction(async (tx) => {
@@ -13,6 +14,30 @@ export async function addComment(ticketId: string, userId: string, body: string)
   });
 }
 
+/** Authors can change their own comments; admins can change anyone's. */
+async function editableComment(id: string, actor: SessionUser) {
+  const [comment] = await db.select().from(comments).where(eq(comments.id, id));
+  if (!comment) throw new ActionError("That comment no longer exists.");
+  if (comment.userId !== actor.id && actor.role !== "admin") {
+    throw new ActionError("You can only change your own comments.");
+  }
+  return comment;
+}
+
+export async function updateComment(id: string, actor: SessionUser, body: string) {
+  const comment = await editableComment(id, actor);
+  if (comment.body === body) return;
+  await db
+    .update(comments)
+    .set({ body, updatedAt: new Date() })
+    .where(and(eq(comments.id, id), eq(comments.ticketId, comment.ticketId)));
+}
+
+export async function deleteComment(id: string, actor: SessionUser) {
+  await editableComment(id, actor);
+  await db.delete(comments).where(eq(comments.id, id));
+}
+
 export type ActivityItem =
   | {
       kind: "comment";
@@ -20,6 +45,7 @@ export type ActivityItem =
       createdAt: Date;
       user: { id: string; name: string };
       body: string;
+      editedAt: Date | null;
     }
   | {
       kind: "change";
@@ -39,6 +65,7 @@ export async function getActivity(ticketId: string): Promise<ActivityItem[]> {
         id: comments.id,
         createdAt: comments.createdAt,
         body: comments.body,
+        editedAt: comments.updatedAt,
         user: { id: users.id, name: users.name },
       })
       .from(comments)

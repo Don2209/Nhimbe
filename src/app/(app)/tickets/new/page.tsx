@@ -1,7 +1,9 @@
 import { FolderPlus } from "lucide-react";
 import type { Metadata } from "next";
 import { createTicketAction } from "@/actions/tickets";
+import Link from "next/link";
 import { EmptyState } from "@/components/empty-state";
+import { Button } from "@/components/ui/button";
 import { PageHeader } from "@/components/page-header";
 import { TicketForm } from "@/components/ticket-form";
 import { requireUser } from "@/lib/auth-guards";
@@ -23,8 +25,12 @@ export default async function NewTicketPage({ searchParams }: PageProps<"/ticket
     <div className="mx-auto w-full max-w-5xl px-4 py-6 sm:px-6 lg:px-10 lg:py-10">
       <PageHeader title="New ticket" description="Write it down so the team can pick it up." />
       {projects.length === 0 ? (
-        <EmptyState icon={FolderPlus} title="No active projects">
-          Tickets live in projects. Ask an admin to create one first.
+        <EmptyState
+          icon={FolderPlus}
+          title="No active projects"
+          action={<Button nativeButton={false} render={<Link href="/projects" />}>Create a project</Button>}
+        >
+          Tickets live in projects. Create one first, then come back here.
         </EmptyState>
       ) : (
         <TicketForm
