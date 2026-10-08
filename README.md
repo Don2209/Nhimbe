@@ -78,7 +78,7 @@ Migrations are versioned SQL files in [`drizzle/`](drizzle/). Commit them. Never
    DATABASE_URL="postgresql://…production…" npm run db:migrate
    ```
    Variables set on the command line take precedence over `.env.local`, so your local settings stay untouched.
-   *Optional:* to apply migrations on every deploy, set **Settings → Build & Development → Build Command** to `npm run db:migrate && npm run build`.
+   (Not strictly required: [`vercel.json`](vercel.json) already runs `npm run db:migrate` before every build, so each deploy brings the schema up to date.)
 6. **Create the first admin.**
    ```bash
    DATABASE_URL="postgresql://…production…" \
