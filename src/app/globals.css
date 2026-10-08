@@ -1,26 +1,265 @@
 @import "tailwindcss";
+@import "tw-animate-css";
+@import "shadcn/tailwind.css";
 
+@custom-variant dark (&:is(.dark *));
+
+/*
+ * Nhimbe palette, drawn from the Zimbabwean landscape:
+ *   sandstone  – warm granite-kopje neutrals for surfaces and text
+ *   msasa      – deep green of the msasa woodland, the primary colour
+ *   terracotta – red-earth accent
+ *   ochre, jacaranda, mopane – supporting status hues
+ */
 :root {
-  --background: #ffffff;
-  --foreground: #171717;
+  --sand-50: #fbf8f2;
+  --sand-100: #f6f1e8;
+  --sand-200: #ede5d8;
+  --sand-300: #e1d6c4;
+  --sand-400: #cbbca5;
+  --sand-500: #a39580;
+  --sand-600: #75695a;
+  --sand-700: #574d41;
+  --sand-800: #3a332b;
+  --sand-900: #26211b;
+  --sand-950: #15120e;
+  --msasa-300: #8cc4a3;
+  --msasa-400: #5f9f7b;
+  --msasa-500: #3f7d5c;
+  --msasa-600: #2f5d46;
+  --msasa-700: #244a37;
+  --terracotta-300: #eda283;
+  --terracotta-400: #e07a52;
+  --terracotta-500: #c2603a;
+  --terracotta-600: #9e4a2a;
+
+  --background: var(--sand-100);
+  --foreground: #2a231c;
+  --card: var(--sand-50);
+  --card-foreground: #2a231c;
+  --popover: var(--sand-50);
+  --popover-foreground: #2a231c;
+  --primary: var(--msasa-600);
+  --primary-foreground: var(--sand-50);
+  --secondary: var(--sand-200);
+  --secondary-foreground: #2a231c;
+  --muted: var(--sand-200);
+  --muted-foreground: #6b5f50;
+  --accent: #f4e3d8;
+  --accent-foreground: #7a3418;
+  --terracotta: var(--terracotta-500);
+  --destructive: #b3261e;
+  --border: var(--sand-300);
+  --input: #d8ccb8;
+  --ring: var(--msasa-500);
+  --radius: 0.5rem;
+  --sidebar: #efe8dc;
+  --sidebar-foreground: #3a332b;
+  --sidebar-primary: var(--msasa-600);
+  --sidebar-primary-foreground: var(--sand-50);
+  --sidebar-accent: #e5dccd;
+  --sidebar-accent-foreground: #2a231c;
+  --sidebar-border: var(--sand-300);
+  --sidebar-ring: var(--msasa-500);
+  --chart-1: var(--msasa-600);
+  --chart-2: var(--terracotta-500);
+  --chart-3: #b7791f;
+  --chart-4: #6e55a0;
+  --chart-5: var(--sand-600);
+
+  /* Status & priority hues (text-strength; badges tint their backgrounds). */
+  --status-open: #5d6b78;
+  --status-in-progress: #9a6212;
+  --status-in-review: #6a4f9a;
+  --status-done: #2f6e48;
+  --status-closed: #6f6556;
+  --priority-low: #6f6556;
+  --priority-medium: #2f6577;
+  --priority-high: #a34d26;
+  --priority-urgent: #b3261e;
+}
+
+.dark {
+  --background: var(--sand-950);
+  --foreground: #eee6d8;
+  --card: #1c1813;
+  --card-foreground: #eee6d8;
+  --popover: #211c17;
+  --popover-foreground: #eee6d8;
+  --primary: var(--msasa-400);
+  --primary-foreground: #0f2219;
+  --secondary: #2a241d;
+  --secondary-foreground: #eee6d8;
+  --muted: #26211b;
+  --muted-foreground: #ab9d89;
+  --accent: #3a2419;
+  --accent-foreground: #f2bfa6;
+  --terracotta: var(--terracotta-400);
+  --destructive: #f2786b;
+  --border: #2f2922;
+  --input: #3b3329;
+  --ring: var(--msasa-400);
+  --sidebar: #19150f;
+  --sidebar-foreground: #d8cebf;
+  --sidebar-primary: var(--msasa-400);
+  --sidebar-primary-foreground: #0f2219;
+  --sidebar-accent: #2a241d;
+  --sidebar-accent-foreground: #eee6d8;
+  --sidebar-border: #2a241d;
+  --sidebar-ring: var(--msasa-400);
+  --chart-1: var(--msasa-400);
+  --chart-2: var(--terracotta-400);
+  --chart-3: #e0a84a;
+  --chart-4: #a98ad8;
+  --chart-5: var(--sand-500);
+
+  --status-open: #a9b6c2;
+  --status-in-progress: #e6ae55;
+  --status-in-review: #b9a0e6;
+  --status-done: #7fc79b;
+  --status-closed: #a89d8e;
+  --priority-low: #a89d8e;
+  --priority-medium: #86c1d3;
+  --priority-high: #f09670;
+  --priority-urgent: #ff8a7e;
 }
 
 @theme inline {
+  --font-sans: var(--font-inter), ui-sans-serif, system-ui, sans-serif;
+  --font-heading: var(--font-fraunces), ui-serif, Georgia, serif;
+  --font-mono: var(--font-mono-face), ui-monospace, monospace;
+
+  /* Type scale: compact for a dense UI, with a display size for page titles. */
+  --text-2xs: 0.6875rem;
+  --text-2xs--line-height: 1rem;
+  --text-display: 2rem;
+  --text-display--line-height: 2.375rem;
+  --text-display--letter-spacing: -0.02em;
+
   --color-background: var(--background);
   --color-foreground: var(--foreground);
-  --font-sans: var(--font-geist-sans);
-  --font-mono: var(--font-geist-mono);
+  --color-sidebar-ring: var(--sidebar-ring);
+  --color-sidebar-border: var(--sidebar-border);
+  --color-sidebar-accent-foreground: var(--sidebar-accent-foreground);
+  --color-sidebar-accent: var(--sidebar-accent);
+  --color-sidebar-primary-foreground: var(--sidebar-primary-foreground);
+  --color-sidebar-primary: var(--sidebar-primary);
+  --color-sidebar-foreground: var(--sidebar-foreground);
+  --color-sidebar: var(--sidebar);
+  --color-chart-5: var(--chart-5);
+  --color-chart-4: var(--chart-4);
+  --color-chart-3: var(--chart-3);
+  --color-chart-2: var(--chart-2);
+  --color-chart-1: var(--chart-1);
+  --color-ring: var(--ring);
+  --color-input: var(--input);
+  --color-border: var(--border);
+  --color-destructive: var(--destructive);
+  --color-accent-foreground: var(--accent-foreground);
+  --color-accent: var(--accent);
+  --color-terracotta: var(--terracotta);
+  --color-muted-foreground: var(--muted-foreground);
+  --color-muted: var(--muted);
+  --color-secondary-foreground: var(--secondary-foreground);
+  --color-secondary: var(--secondary);
+  --color-primary-foreground: var(--primary-foreground);
+  --color-primary: var(--primary);
+  --color-popover-foreground: var(--popover-foreground);
+  --color-popover: var(--popover);
+  --color-card-foreground: var(--card-foreground);
+  --color-card: var(--card);
+  --color-status-open: var(--status-open);
+  --color-status-in-progress: var(--status-in-progress);
+  --color-status-in-review: var(--status-in-review);
+  --color-status-done: var(--status-done);
+  --color-status-closed: var(--status-closed);
+  --color-priority-low: var(--priority-low);
+  --color-priority-medium: var(--priority-medium);
+  --color-priority-high: var(--priority-high);
+  --color-priority-urgent: var(--priority-urgent);
+  --radius-sm: calc(var(--radius) * 0.6);
+  --radius-md: calc(var(--radius) * 0.8);
+  --radius-lg: var(--radius);
+  --radius-xl: calc(var(--radius) * 1.4);
+  --radius-2xl: calc(var(--radius) * 1.8);
+  --radius-3xl: calc(var(--radius) * 2.2);
+  --radius-4xl: calc(var(--radius) * 2.6);
 }
 
-@media (prefers-color-scheme: dark) {
-  :root {
-    --background: #0a0a0a;
-    --foreground: #ededed;
+@layer base {
+  * {
+    @apply border-border outline-ring/50;
+  }
+  html {
+    @apply font-sans;
+    color-scheme: light;
+  }
+  html.dark {
+    color-scheme: dark;
+  }
+  body {
+    @apply bg-background text-foreground;
+    font-feature-settings: "cv11", "ss01";
+  }
+  h1,
+  h2,
+  h3 {
+    @apply font-heading;
+    font-optical-sizing: auto;
+  }
+  ::selection {
+    background: color-mix(in oklab, var(--primary) 25%, transparent);
+  }
+  @media (prefers-reduced-motion: reduce) {
+    *,
+    *::before,
+    *::after {
+      animation-duration: 0.01ms !important;
+      transition-duration: 0.01ms !important;
+    }
   }
 }
 
-body {
-  background: var(--background);
-  color: var(--foreground);
-  font-family: Arial, Helvetica, sans-serif;
+/* Rendered Markdown (descriptions and comments). */
+@layer components {
+  .prose-nhimbe {
+    @apply text-sm leading-relaxed break-words text-foreground;
+  }
+  .prose-nhimbe > * + * {
+    @apply mt-3;
+  }
+  .prose-nhimbe h1,
+  .prose-nhimbe h2,
+  .prose-nhimbe h3,
+  .prose-nhimbe h4 {
+    @apply mt-5 font-heading font-semibold tracking-tight first:mt-0;
+  }
+  .prose-nhimbe h1 { @apply text-xl; }
+  .prose-nhimbe h2 { @apply text-lg; }
+  .prose-nhimbe h3,
+  .prose-nhimbe h4 { @apply text-base; }
+  .prose-nhimbe a {
+    @apply font-medium text-primary underline decoration-primary/40 underline-offset-2 hover:decoration-primary;
+  }
+  .prose-nhimbe ul { @apply list-disc pl-5; }
+  .prose-nhimbe ol { @apply list-decimal pl-5; }
+  .prose-nhimbe li + li { @apply mt-1; }
+  .prose-nhimbe li:has(> input[type="checkbox"]) { @apply -ml-5 list-none; }
+  .prose-nhimbe input[type="checkbox"] { @apply mr-1.5 align-middle accent-primary; }
+  .prose-nhimbe code {
+    @apply rounded bg-muted px-1 py-0.5 font-mono text-[0.8125em];
+  }
+  .prose-nhimbe pre {
+    @apply overflow-x-auto rounded-lg border bg-muted/60 p-3 text-xs leading-relaxed;
+  }
+  .prose-nhimbe pre code { @apply bg-transparent p-0; }
+  .prose-nhimbe blockquote {
+    @apply border-l-2 border-terracotta/60 pl-3 text-muted-foreground;
+  }
+  .prose-nhimbe hr { @apply border-border; }
+  .prose-nhimbe table { @apply block w-full overflow-x-auto text-xs; }
+  .prose-nhimbe th,
+  .prose-nhimbe td { @apply border px-2 py-1 text-left; }
+  .prose-nhimbe th { @apply bg-muted/60 font-medium; }
+  .prose-nhimbe img { @apply max-w-full rounded-md; }
 }
