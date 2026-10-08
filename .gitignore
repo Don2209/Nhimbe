@@ -40,3 +40,8 @@ yarn-error.log*
 # typescript
 *.tsbuildinfo
 next-env.d.ts
+
+# local agent tooling added by the Vercel/Neon integration
+.agents/
+.claude/
+skills-lock.json
